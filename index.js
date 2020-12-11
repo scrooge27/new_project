@@ -3,6 +3,8 @@ const express = require('express');
 const app = express();
 const port = 8000;
 
+app.use(express.static('./public'));
+
 const handlebars = require('express-handlebars');
 
 app.set('view engine', 'hbs');
@@ -15,7 +17,10 @@ defaultLayout: 'planB',
 partialsDir: __dirname + '/views/partials/'
 }));
 
-app.use(express.static('public'))
+
+app.get('/page',(req,res)=> {
+	res.send(html);
+});
 
 app.get('/', (req, res) => {
 let i=req.headers['user-agent']
