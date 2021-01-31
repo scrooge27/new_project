@@ -48,7 +48,9 @@ router.get("/:id", (req, res) => {
                   </div>
                     `))
           res.end()
+
     })
+  
 });
 
 module.exports=router;
