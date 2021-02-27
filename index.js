@@ -1,51 +1,56 @@
-/*npm install express body-parser
+/* npm install express body-parser
 const body-parser=require('body-parser')
 app.use(body-parser.json())*/
 
-/*npm init -y
+/* npm init -y
 npm install express
 touch inde.js*/
 
-const express = require('express');
-const app = express();
-const fetch = require('node-fetch');
-const port = 8000;
+const express = require("express")
+const app = express()
+const fetch = require("node-fetch")
+const port = 8000
 
-app.use(express.static('./public'));
+app.use(express.static("./public"))
 
-const handlebars = require('express-handlebars');
+const handlebars = require("express-handlebars")
 
-app.set('view engine', 'hbs');
+app.set("view engine", "hbs")
 
-app.engine('hbs', handlebars({
-layoutsDir: __dirname + '/views/layouts',
-extname: 'hbs',
-defaultLayout: 'planB',
-//new configuration parameter
-partialsDir: __dirname + '/views/partials/'
-}));
+app.engine("hbs", handlebars({
+  layoutsDir: __dirname + "/views/layouts",
+  extname: "hbs",
+  defaultLayout: "planB",
+  // new configuration parameter
+  partialsDir: __dirname + "/views/partials/"
+}))
 
 
-app.get('/page',(req,res)=> {
-	res.send(html);
-});
+app.get("/page", (req, res) => {
+  res.send(html)
+})
 
 const mandalista = (el) => {
-	el.forEach(e => {`<li>${e.id}</li>`})
-};
+  el.forEach(e => {
+    `<li>${e.id}</li>`
+  })
+}
 
-const a="ciao";
+const a = "ciao"
 
 app.get("/prova/:id", (req, res) => {
-	fetch(`https://jsonplaceholder.typicode.com/post/${req.params.id}/comments`)
-  .then(response => response.json())
-  .then(json => console.log(json))
-  .then(response => {  	
-  		res.render('learn', {layout: 'index', title: `<h1>ciao</h1>`,
-  											comment: `${req.comment}`,
-  											email: `${req.email}`, 	}) 
-})  	});
- /* 	  res.write(`	 
+  fetch(`https://jsonplaceholder.typicode.com/post/${req.params.id}/comments`)
+    .then(response => response.json())
+    .then(json => console.log(json))
+    .then(response => {
+      res.render("learn", {
+        layout: "index",
+        title: "<h1>ciao</h1>",
+        comment: `${req.comment}`,
+        email: `${req.email}` 	})
+    })
+})
+/* 	  res.write(`
 			  	<head>
 			    <meta charset="utf-8">
 			    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -81,36 +86,30 @@ app.get("/prova/:id", (req, res) => {
     })
   });*/
 
-app.get('/', (req, res) => {
-let i=req.headers['user-agent']
-if(i.search('Edg')<0 && (req.query.name==="Simone"||req.query.id==="27"||req.query.sur==="Pucci")){
-	res.render('main', {layout: 'index', greeting: 'Hello World!', jumbo:"Hi master"})
-}
-if(i.search('Edg')<0 && (req.query.name!="Simone" && req.query.id!="27" && req.query.sur!="Pucci")){
-	res.render('main', {layout: 'index', greeting: 'Hello World!', jumbo:"This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information."})
-}
-else{
-	res.render('main', {layout: 'index', greeting: 'stai usando Edge, mona!'})
-}
+app.get("/", (req, res) => {
+  const i = req.headers["user-agent"]
+  if (i.search("Edg") < 0 && (req.query.name === "Simone" || req.query.id === "27" || req.query.sur === "Pucci")) {
+    res.render("main", { layout: "index", greeting: "Hello World!", jumbo: "Hi master" })
+  }
+  if (i.search("Edg") < 0 && (req.query.name !== "Simone" && req.query.id != "27" && req.query.sur != "Pucci")) {
+    res.render("main", { layout: "index", greeting: "Hello World!", jumbo: "This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information." })
+  }   else {
+    res.render("main", { layout: "index", greeting: "stai usando Edge, mona!" })
+  }
 
-});
+})
 
-app.get('/learn', (req, res) => {
-let i=req.headers['user-agent']
-if(i.search('Edg')<0 && (req.query.name==="Simone"||req.query.id==="27"||req.query.sur==="Pucci")){
-	res.render('learn', {layout: 'index', typeAl: 'alert alert-success', content: 'task completed master'})
-}
-if(i.search('Edg')<0 && (req.query.name!="Simone" && req.query.id!="27" && req.query.sur!="Pucci")){
-	res.render('learn', {layout: 'index', typeAl: 'alert alert-success', content: 'task completed'})
-}
-else{
-	res.render('learn', {layout: 'index', typeAl: 'alert alert-danger', content: 'mission failed'})
-}
+app.get("/learn", (req, res) => {
+  const i = req.headers["user-agent"]
+  if (i.search("Edg") < 0 && (req.query.name === "Simone" || req.query.id === "27" || req.query.sur === "Pucci")) {
+    res.render("learn", { layout: "index", typeAl: "alert alert-success", content: "task completed master" })
+  }
+  if (i.search("Edg") < 0 && (req.query.name != "Simone" && req.query.id != "27" && req.query.sur != "Pucci")) {
+    res.render("learn", { layout: "index", typeAl: "alert alert-success", content: "task completed" })
+  }   else {
+    res.render("learn", { layout: "index", typeAl: "alert alert-danger", content: "mission failed" })
+  }
 
-});
+})
 
-app.listen(port, () => console.log(`App listening to port ${port}`));
-
-/*"npm i --save-dev @soluzioni-futura/eslint-config-soluzioni-futura" {
-  "extends": "@soluzioni-futura/eslint-config-soluzioni-futura"
-}*/
+app.listen(port, () => console.log(`App listening to port ${port}`))

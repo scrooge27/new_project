@@ -13,8 +13,7 @@ const fetch = require('node-fetch')
 const port=8080
 
 app.post("/login", (req,res)=>{
-	us=req.body.username
-	pwd=req.body.password
+	const{us,pwd}=req.body
 	const sql ='SELECT * FROM users WHERE username = ? AND password = ?'
     const params =[us,pwd]
     db.get(sql, params, (err, result) => {
