@@ -81,6 +81,11 @@ app.get("/", ({ query: { format } }, res) => {
         table, td, th {
           border: 1px solid black;
         }
+
+        td {
+          width: 100px;
+          height: 100px;
+        }
         
         table {
           width: 100%;
@@ -91,7 +96,7 @@ app.get("/", ({ query: { format } }, res) => {
     <body>
       <table>
         <tbody>
-          ${field.map(row => `<tr>${row.map(cell => `<td>${cell.ship ? cell.ship.id : "acqua"}</td>`).join("")}</tr>`).join("")}
+          ${field.map(row => `<tr>${row.map(cell => `<td>${cell.ship ? cell.ship.id : ""}</td>`).join("")}</tr>`).join("")}
         </tbody>
       </table>
     </body>
