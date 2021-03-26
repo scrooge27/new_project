@@ -2,6 +2,8 @@ const faker = require("faker")
 const express = require("express")
 const app = new express()
 const PORT = 8000
+const fetch = require("node-fetch")
+const { response } = require("express")
 
 const field = []
 const ships = []
@@ -20,9 +22,15 @@ app.get("/signup", ({ query: { n, pwd } }, res) => {
   res.json({ message: "sei registrato, team " + n })
 })
 
-const W = process.argv[2] || 6
-const H = process.argv[3] || 6
-const S = process.argv[4] || 10
+const W = process.argv[2] || 4
+const H = process.argv[3] || 4
+const S = process.argv[4] || 2
+
+const gameStatus = {
+  active: true,
+  startTime: new Date().getTime(),
+  endTime: null
+}
 
 for (let y = 0; y < H; y++) {
   const row = []
@@ -40,8 +48,8 @@ for (let y = 0; y < H; y++) {
 
 let id = 1
 for (let i = 0; i < S; i++) {
-  const maxHp = faker.random.number({ min: 1, max: 6 })
   const vertical = faker.random.boolean()
+  const maxHp = faker.random.number({ min: 1, max: vertical ? H-1 : W-1})
   console.log({ vertical, maxHp })
 
   const ship = {
@@ -51,7 +59,7 @@ for (let i = 0; i < S; i++) {
     y: faker.random.number({ min: 0, max: vertical ? H - maxHp : H - 1 }),
     vertical,
     maxHp,
-    curHp: 4,
+    curHp: maxHp,
     alive: true,
     killer: null
   }
@@ -143,73 +151,90 @@ app.get("/fire", ({ query: { x, y, team, password } }, res) => {
   const t = teams.find(obj => {
     return obj.name === team
   })
-  const l = new Date().getTime()
+  const now = new Date().getTime()
+  if (!gameStatus.active) {
+    return res.status(400).json({ message: "gioco terminato" })
+  } else if (!t) {
+    return res.status(401).json({ message: "team non registrato" })
+  } else if (t.password !== password) {
+    return res.status(401).json({ message: "password errata" })
+  } else if (now - t.lastFiredBullet < 1000) {
+    return res.status(408).json({ message: "stai tentando di aggirare il trottling della request" })
+  }
 
-  /* else if (t.lastFiredBullet + 1000 <= l || t.password !== password) {
-    t.lastFiredBullet = l
+  t.firedBullets ++
+  t.lastFiredBullet = now
+
+  if (field[y]) {
+    if (field[y][x]) {
+      if (field[y][x].hit) {
+        t.score--
+      } else {
+        field[y][x].hit = true
+        field[y][x].team = team
+        if (field[y][x].ship) {
+          field[y][x].ship.curHp--
+          t.score++
+          if (field[y][x].ship.curHp === 0) {
+            field[y][x].ship.alive = false
+            field[y][x].ship.killer = team
+            t.score += field[y][x].ship.maxHp
+          }
+        }
+      }
+      res.json({
+        x,
+        y,
+        team,
+        colpito: field[y][x].hit,
+        nave: field[y][x].ship ? field[y][x].ship.name  : null,
+        affondata: field[y][x].ship ? (field[y][x].ship.alive ? "no" : "sì") : "nessuna nave",
+        punti: t.score
+      })
+    }     else {
+      t.score -= 10
+      res.json({
+        x,
+        y,
+        team,
+        colpito: null,
+        nave: null,
+        punti: t.score
+      })
+    }
+  }   else {
+    t.score -= 10
     res.json({
-      x, y, team, colpito: false
+      x,
+      y,
+      team,
+      colpito: null,
+      nave: null,
+      punti: t.score
     })
   }
-  t.lastFiredBullet = l */
-if (!!field[y]) {
-  if(!!field[y][x]){
-    if(field[y][x].hit){
-      t.score--
-    }
-    else{
-      field[y][x].hit = true
-      field[y][x].team = team
-      field[y][x].ship ? (field[y][x].ship.curHp--, t.score++) : ""
-      field[y][x].ship ? field[y][x].ship.curHp === 0 ? (field[y][x].ship.alive = false, field[y][x].ship.killer = team, t.score += field[y][x].ship.maxHp) : "" : ""
-    }
-      res.json({
-    x,
-    y,
-    team,
-    colpito: field[y][x].hit,
-    nave: field[y][x].ship ? field[y][x].ship.name  : null,
-    affondata: field[y][x].ship ? (field[y][x].ship.alive ? "no" : "sì") : "nessuna nave",
-    punti: t.score
-  })
-}
-else{
-  t.score -= 10
-  res.json({
-    x,
-    y,
-    team,
-    colpito: null,
-    nave: null,
-    punti: t.score
-  })
-}
-}
-else{
-  t.score -= 10
-  res.json({
-    x,
-    y,
-    team,
-    colpito: null,
-    nave: null,
-    punti: t.score
-  })
-}
-  /*
-    V1. segnare la cella come colpita
-    V2. segnare eventualmente la nave come colpita (ridurre gli hp e verificare se e' morta)
-    V3. assegnare il team sia alla cella che alla nave (eventuale)
-    V4. assicurarsi che il team che chiama l'endpoint non possa chiamarlo per piu' di una volta al secondo (opzionale)
-    V5. definire un punteggio conseguente all'attacco:
-      a. punteggio molto negativo se si spara fuori dal campo
-      b. punteggio 0 se acqua
-      c. punteggio negativo se spari su casella gia' colpita
-      c. punteggio positivo se spari su nave ma non la uccidi
-      d. punteggio molto positivo se spari su nave e la uccidi
-  */
 })
 
+app.get("/play", ({ query: { n, pwd } }, res) => {
+  const ms = 1500
+  fetch("https://localhost:$PORT/signup?n=$n&pwd=$pwd")
+  while (gameStatus.active) {
+    const x = faker.random.number({ min: 0, max: 10 })
+    const y = faker.random.number({ min: 0, max: 10 })
+    fetch("https://localhost:$PORT/fire?x=$x&y=$y&team=$n&password=$pwd")
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch( function () {
+        console.log("error");
+      });
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+  }
+  const t = teams.find(obj => {
+    return obj.name === team
+  })
+  return res.status(200).json({ punteggio: t.score })
+
+})
 app.all("*", (req, res) => {
   res.sendStatus(404)
 })
